@@ -192,7 +192,7 @@ should_build_target <- function(target, meta, config){
 
 using_default_triggers <- function(config){
   default_plan_triggers <-
-    is.null(config$plan$trigger) ||
-    all(config$plan$trigger == default_trigger())
+    is.null(config$plan[["trigger"]]) ||
+    all(config$plan[["trigger"]] == default_trigger())
   default_plan_triggers && config$trigger == default_trigger()
 }

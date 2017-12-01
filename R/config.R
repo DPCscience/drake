@@ -79,6 +79,7 @@ drake_config <- function(
   cache = drake::get_cache(verbose = verbose, force = force),
   parallelism = drake::default_parallelism(),
   jobs = 1,
+  evaluators = list(),
   packages = rev(.packages()),
   prework = character(0),
   prepend = character(0),
@@ -135,7 +136,8 @@ drake_config <- function(
   }
   list(
     plan = plan, targets = targets, envir = envir, cache = cache,
-    parallelism = parallelism, jobs = jobs, verbose = verbose, hook = hook,
+    parallelism = parallelism, jobs = jobs, evaluators = evaluators,
+    verbose = verbose, hook = hook,
     prepend = prepend, prework = prework, command = command,
     args = args, recipe_command = recipe_command, graph = graph,
     short_hash_algo = cache$get("short_hash_algo", namespace = "config"),

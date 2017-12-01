@@ -10,17 +10,20 @@ worker_future <- function(targets, meta_list, config){
   if (!length(targets)){ # nocov # nolint
     return()             # nocov
   }                      # nocov
-  lightly_parallelize(
+  futures <- lightly_parallelize(
     X = targets,
     FUN = deploy_future,
     jobs = config$jobs,
     meta_list = meta_list,
     config = config
   )
+  values <- future::values(futures)
+  rm(list = "values")
+  invisible()
 }
 
 deploy_future <- function(target, meta_list, config){
-  f <- future::future(
+  future::future(
     expr = {
       drake:::build_distributed(
         target = target,
@@ -30,18 +33,15 @@ deploy_future <- function(target, meta_list, config){
     },
     evaluator = get_evaluator(target = target, config = config)
   )
-  v <- value(f)
-  rm(v)
-  invisible()
 }
 
 get_evaluator <- function(target, config){
   if (is.null(config$plan[["evaluator"]])){
     return(future::plan("next"))
   }
-  evaluator <- config$plan[["evaluator"]][config$plan$target == target][[1]]
-  if (inherits(evaluator, "FutureStrategy")){
-    evaluator
+  evaluator <- config$plan[["evaluator"]][config$plan$target == target]
+  if (evaluator %in% names(config$evaluators)){
+    config$evaluators[[evaluator]]
   } else {
     future::plan("next")
   }

@@ -12,7 +12,7 @@ worker_future <- function(targets, meta_list, config){
   }                      # nocov
   futures <- lightly_parallelize(
     X = targets,
-    FUN = deploy_future,
+    FUN = create_target_future,
     jobs = config$jobs,
     meta_list = meta_list,
     config = config
@@ -22,7 +22,7 @@ worker_future <- function(targets, meta_list, config){
   invisible()
 }
 
-deploy_future <- function(target, meta_list, config){
+create_target_future <- function(target, meta_list, config){
   future::future(
     expr = {
       drake:::build_distributed(

@@ -4,9 +4,13 @@ test_with_dir("future backend", {
   pl <- plan_drake(a = 1, b = 2)
   pl$evaluator = c("e1", "e2")
   evaluators = list(e1 = future::sequential, e2 = future::multisession)
-  make(pl, parallelism = "future", session_info = FALSE)
+  config <- make(pl, parallelism = "future", session_info = FALSE)
   expect_equal(readd(a), 1)
   expect_equal(readd(b), 2)
+  config$plan$evaluator[1] = "not_found"
+  expect_silent(tmp <- get_evaluator("a", config))
+  config$plan$evaluator <- NULL
+  expect_silent(tmp <- get_evaluator("a", config))
 })
 
 test_with_dir("future_lapply functionality", {

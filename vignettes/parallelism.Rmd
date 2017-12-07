@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-`Drake` has extensive high-performance computing support, from local multicore parallelism to serious distributed computing across multiple nodes of a cluster. Control it with the `parallelism` and `jobs` arguments to `make()`, and use `future::plan()` if `parallelism` is `"future_lapply"`.
+`Drake` has extensive high-performance computing support, from local multicore parallelism to serious distributed computing across multiple nodes of a cluster. Control it with the `parallelism` and `jobs` arguments to `make()`, and use `future::plan()` if `parallelism` is `"future"`.
 
 # The concept
 
@@ -74,7 +74,7 @@ parallel_stages(config)
 
 ## Not too many!
 
-Be mindful of the maximum number of simultaneous parallel jobs you deploy. Consequences of greed and carelessness range from poor etiquette to system crashes. In most cases, the `jobs` argument to `make()` sets the maximum number of simultaneous jobs, but it does not apply to the parallel execution of targets when `parallelism` is `"future_lapply"`. If you use `"future_lapply"` parallelism, please see the  `workers` argument to most supporting functions passed to `future::plan()` (for example, `future::plan(multisession(workers = 2))`). Depending on the [future](https://github.com/HenrikBengtsson/future) backend you select with `future::plan()` or `future::plan()`, you might also make use of one of the other environment variables listed in `?future::future.options`.
+Be mindful of the maximum number of simultaneous parallel jobs you deploy. Consequences of greed and carelessness range from poor etiquette to system crashes. In most cases, the `jobs` argument to `make()` sets the maximum number of simultaneous jobs, but it does not apply to the parallel execution of targets when `parallelism` is `"future"`. If you use `"future"` parallelism, please see the  `workers` argument to most supporting functions passed to `future::plan()` (for example, `future::plan(multisession(workers = 2))`). Depending on the [future](https://github.com/HenrikBengtsson/future) backend you select with `future::plan()` or `future::plan()`, you might also make use of one of the other environment variables listed in `?future::future.options`.
 
 ## Drake can report the maximum number of useful simultaneous jobs
 
@@ -141,9 +141,9 @@ make(.., parallelism = "parLapply", jobs = 2)
 default_parallelism() # "parLapply" on Windows, "mclapply" everywhere else
 ```
 
-## future_lapply
+## future
 
-The `future` package unlocks a wide array of powerful parallel backends. The idea is to set up a `future::plan()` in advance and then call `make(parallelism = "future_lapply")`.
+The `future` package unlocks a wide array of powerful parallel backends. The idea is to set up a `future::plan()` in advance and then call `make(parallelism = "future")`.
 
 ```{r sequential, eval = TRUE}
 library(future)
@@ -156,14 +156,14 @@ future::plan()
 `make()` knows which `future::plan()` you selected.
 
 ```{r usebackend, eval = FALSE}
-make(my_plan, parallelism = "future_lapply")
+make(my_plan, parallelism = "future")
 ```
 
 The `multicore` plan is the analogue of `mclapply` parallelism, and the `multisession` plan is the analogue of `parLapply` parallelism.
 
 ```{r futuremultisession, eval = FALSE}
 future::plan(multisession(workers = 4)) # Use a max of 4 parallel jobs at a time. # nolint
-make(my_plan, parallelism = "future_lapply")
+make(my_plan, parallelism = "future")
 ```
 
 You can even deploy to your own parallel socket clusters clusters. You can use `future::makeClusterPSOCK()` rather than `parallel::makePSOCKcluster()`.
@@ -171,7 +171,7 @@ You can even deploy to your own parallel socket clusters clusters. You can use `
 ```{r owncluster, eval = FALSE}
 cl <- future::makeClusterPSOCK(2L, dryrun = TRUE)
 future::plan(cluster, workers = cl)
-make(my_plan, parallelism = "future_lapply")
+make(my_plan, parallelism = "future")
 ```
 
 This approach should allow you to deploy targets to a [Docker container](https://www.docker.com/what-container).
@@ -192,7 +192,7 @@ cl <- future::makeClusterPSOCK(
   )
 )
 future::plan(cluster, workers = cl)
-make(my_plan, parallelism = "future_lapply")
+make(my_plan, parallelism = "future")
 ```
 
 The [future.batchtools](https://github.com/HenrikBengtsson/future.batchtools) package unlocks [even more parallel computing functionality](https://github.com/HenrikBengtsson/future.batchtools#choosing-batchtools-backend), particularly for popular job schedulers such as [SLURM](https://slurm.schedmd.com/),  [TORQUE](http://www.adaptivecomputing.com/products/open-source/torque/), and the [Univa Grid Engine](https://supcom.hgc.jp/english/utili_info/manual/uge.html).
@@ -201,10 +201,30 @@ The [future.batchtools](https://github.com/HenrikBengtsson/future.batchtools) pa
 library(future.batchtools)
 drake_batchtools_tmpl_file("slurm") # Write batchtools.slurm.tmpl.
 batchtools_slurm(template = "batchtools.slurm.tmpl", workers = 16)
-make(my_plan, parallelism = "future_lapply")
+make(my_plan, parallelism = "future")
 ```
 
-You can even nest parallelism strategies together. In the following example, targets are submitted as jobs on the Univa Grid engine, and then `future`-style multicore parallelism is applied to each target's command individually.
+With a custom `"evaluator"` column in the workflow plan data frame, you can send different targets to different compute resources. In the following example, we use the [Sun/Univa Grid Engine](http://www.univa.com/products/) to do most of the computation, but we process the [dynamic knitr report](https://yihui.name/knitr/) locally.
+
+```{r evaluators, eval = FALSE}
+library(drake)
+library(future)
+library(future.batchtools)
+load_basic_example()
+drake_batchtools_tmpl_file("sge")
+future::plan(batchtools_sge(template = "sge-simple.tmpl"))
+sge_plan <- future::plan()
+future::plan(sequential)
+evals <- list(
+  sge = sge_plan,
+  seq = sequential
+)
+my_plan$evaluator <- "sge"
+my_plan$evaluator[my_plan$target == "'report.md'"] <- "seq"
+make(my_plan, parallelism = "future", evaluators = evals)
+```
+
+You can also nest parallelism strategies together. In the following example, targets are submitted as jobs on the Univa Grid engine, and then `future`-style multicore parallelism is applied to each target's command individually.
 
 ```{r hybridparallelism, eval = FALSE}
 drake_batchtools_tmpl_file("sge") # Write sge-simple.tmpl.
@@ -214,7 +234,7 @@ future::plan(
     multiprocess
   )
 )
-make(my_plan, parallelism = "future_lapply")
+make(my_plan, parallelism = "future")
 ```
 
 For parallelism on clusters and job schedulers, special [batchtools](https://github.com/mllg/batchtools) `*.tmpl` configuration files are required, and the technique is described in the documentation of [batchtools](https://github.com/mllg/batchtools). It is your responsibility to configure these files for your job scheduler. You can find some examples on the `inst/templates` folders of the [batchtools](https://github.com/mllg/batchtools/tree/master/inst/templates) and [future.batchtools](https://github.com/HenrikBengtsson/future.batchtools/tree/master/inst/templates) GitHub repositories. `Drake` has some [built-in prepackaged example workflows](https://github.com/wlandau-lilly/drake/tree/master/inst/examples) as well. See `drake_examples()` to view your options, and then `drake_example()` to write the files for an example.
@@ -231,11 +251,15 @@ drake_batchtools_tmpl_file("sge")   # Writes sge-simple.tmpl
 drake_batchtools_tmpl_file("slurm") # Writes batchtools.slurm.tmpl
 ```
 
-Be sure to heed the previously-mentioned cautionary note about deploying too many jobs at once. In `"future_lapply"` parallelism, the `jobs` argument applies to the imports, but not the targets. Functions passed to `future::plan()` such as `mulitisession()` and `batchtools_slurm()` usually have a `workers` arguments for this purpose. Depending on the `future` backend you select with `future::plan()`, you might also make use of one of the other environment variables listed in `?future::future.options`.
+Be sure to heed the previously-mentioned cautionary note about deploying too many jobs at once. In `"future"` parallelism, the `jobs` argument applies to the imports, but not the targets. Functions passed to `future::plan()` such as `mulitisession()` and `batchtools_slurm()` usually have a `workers` arguments for this purpose. Depending on the `future` backend you select with `future::plan()`, you might also make use of one of the other environment variables listed in `?future::future.options`.
+
+## future_lapply
+
+The `"future_lapply"` backend is an older version of the `"future"` backend that does not support a custom evaluators. In other words, `make(..., parallelism = "future_lapply")` cannot send different targets to different compute resources. `Drake` retains both backends because at some point they may open up alternative ways to arrange the targets in parallel steps.
 
 ## Makefile
 
-`Makefile` parallelism uses proper [Makefiles](https://www.gnu.org/software/make/) to distribute targets across different R sessions. Similarly to `future_lapply` parallelism, it is a mechanism for distributing targets at scale. 
+`Makefile` parallelism uses proper [Makefiles](https://www.gnu.org/software/make/) to distribute targets across different R sessions. Similarly to `future` parallelism, it is a mechanism for distributing targets at scale. 
 
 ### Basic Makefile parallelism
 

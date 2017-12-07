@@ -249,13 +249,13 @@ You may need to adapt this last workaround, depending on the structure of the pa
 
 Ordinarily, `drake` prunes the execution environment at every parallelizable stage. In other words, it loads all the dependencies and unloads anything superfluous for entire batches of targets. This approach may require too much memory for some use cases, so there is an option to delay the loading of dependencies using the `lazy_load` argument to `make()` (powered by `delayedAssign()`). There are two major risks.
 
-1. `make(..., lazy_load = TRUE, parallelism = "parLapply", jobs = 2)` does not work. If you want to use local multisession parallelism with multiple jobs and lazy loading, try `"future_lapply"` parallelism instead.
+1. `make(..., lazy_load = TRUE, parallelism = "parLapply", jobs = 2)` does not work. If you want to use local multisession parallelism with multiple jobs and lazy loading, try `"future"` parallelism instead.
 
     ```{r lazyloadfuture, eval = FALSE}
     library(future)
     future::plan(multisession)
     load_basic_example()
-    make(my_plan, lazy_load = TRUE, parallelism = "future_lapply")
+    make(my_plan, lazy_load = TRUE, parallelism = "future")
     ```
 
 2. Delayed evaluation may cause the same dependencies to be loaded multiple times, and these duplicated loads could be slow.
@@ -362,7 +362,7 @@ In your workflow plan, you can use single quotes to assert that some targets/imp
 
 Be mindful of the maximum number of simultaneous parallel jobs you deploy. At best, too many jobs is poor etiquette on a system with many users and limited resources. At worst, too many jobs will crash a system. The `jobs` argument to `make()` sets the maximum number of simultaneous jobs in most cases, but not all.
 
-For most of `drake`'s parallel backends, `jobs` sets the maximum number of simultaneous parallel jobs. However, there are ways to break the pattern. For example, `make(..., parallelism = "Makefile", jobs = 2, args = "--jobs=4")` uses at most 2 jobs for the imports and at most 4 jobs for the targets. (In `make()`, `args` overrides `jobs` for the targets). For `make(..., parallelism = "future_lapply")`, the `jobs` argument is ignored altogether. Instead, you should set the `workers` argument where it is available (for example, `future::plan(mutlisession(workers = 2))` or `future::plan(future.batchtools::batchtools_local(workers = 2))`) in the preparations before `make()`. Alternatively, you might limit the max number of jobs by setting `options(mc.cores = 2)` before calling `make()`. Depending on the `future` backend you select with `future::plan()` or `future::plan()`, you might make use of one of the other environment variables listed in `?future::future.options`.
+For most of `drake`'s parallel backends, `jobs` sets the maximum number of simultaneous parallel jobs. However, there are ways to break the pattern. For example, `make(..., parallelism = "Makefile", jobs = 2, args = "--jobs=4")` uses at most 2 jobs for the imports and at most 4 jobs for the targets. (In `make()`, `args` overrides `jobs` for the targets). For `make(..., parallelism = "future")`, the `jobs` argument is ignored altogether. Instead, you should set the `workers` argument where it is available (for example, `future::plan(mutlisession(workers = 2))` or `future::plan(future.batchtools::batchtools_local(workers = 2))`) in the preparations before `make()`. Alternatively, you might limit the max number of jobs by setting `options(mc.cores = 2)` before calling `make()`. Depending on the `future` backend you select with `future::plan()` or `future::plan()`, you might make use of one of the other environment variables listed in `?future::future.options`.
 
 ## Parallel computing on Windows
 
@@ -370,7 +370,7 @@ On Windows, do not use `make(..., parallelism = "mclapply", jobs = n)` with `n` 
 
 ## Configuring [future](https://github.com/HenrikBengtsson/future)/[batchtools](https://github.com/mllg/batchtools) parallelism for clusters
 
-The `"future_lapply"` backend unlocks a large array of distributed computing options on serious computing clusters. However, it is your responsibility to configure your workflow for your specific job scheduler. In particular, special [batchtools](https://github.com/mllg/batchtools) `*.tmpl` configuration files are required, and the technique is described in the documentation of [batchtools](https://github.com/mllg/batchtools). You can find some examples of these files in the `inst/templates` folders of the [batchtools](https://github.com/mllg/batchtools/tree/master/inst/templates) and [future.batchtools](https://github.com/HenrikBengtsson/future.batchtools/tree/master/inst/templates) GitHub repositories. `Drake` has some [built-in prepackaged example workflows](https://github.com/wlandau-lilly/drake/tree/master/inst/examples). See `drake_examples()` to view your options, and then `drake_example()` to write the files for an example.
+The `"future"` backend unlocks a large array of distributed computing options on serious computing clusters. However, it is your responsibility to configure your workflow for your specific job scheduler. In particular, special [batchtools](https://github.com/mllg/batchtools) `*.tmpl` configuration files are required, and the technique is described in the documentation of [batchtools](https://github.com/mllg/batchtools). You can find some examples of these files in the `inst/templates` folders of the [batchtools](https://github.com/mllg/batchtools/tree/master/inst/templates) and [future.batchtools](https://github.com/HenrikBengtsson/future.batchtools/tree/master/inst/templates) GitHub repositories. `Drake` has some [built-in prepackaged example workflows](https://github.com/wlandau-lilly/drake/tree/master/inst/examples). See `drake_examples()` to view your options, and then `drake_example()` to write the files for an example.
 
 ```{r writexamples, eval = FALSE}
 drake_example("sge")    # Sun/Univa Grid Engine workflow and supporting files

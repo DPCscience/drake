@@ -136,7 +136,7 @@ future::plan(
     workers = 8
   )
 )
-make(my_plan, parallelism = "future_lapply", jobs = 4)
+make(my_plan, parallelism = "future", jobs = 4)
 ```
 
 `Drake` even helps you scale the parallel processing.

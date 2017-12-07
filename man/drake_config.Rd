@@ -8,8 +8,9 @@ drake_config(plan = plan_drake(), targets = drake::possible_targets(plan),
   envir = parent.frame(), verbose = 1, hook = default_hook,
   cache = drake::get_cache(verbose = verbose, force = force),
   parallelism = drake::default_parallelism(), jobs = 1,
-  packages = rev(.packages()), prework = character(0),
-  prepend = character(0), command = drake::default_Makefile_command(),
+  evaluators = list(), packages = rev(.packages()),
+  prework = character(0), prepend = character(0),
+  command = drake::default_Makefile_command(),
   args = drake::default_Makefile_args(jobs = jobs, verbose = verbose),
   recipe_command = drake::default_recipe_command(), timeout = Inf,
   cpu = timeout, elapsed = timeout, retries = 0, force = FALSE,
@@ -34,6 +35,8 @@ drake_config(plan = plan_drake(), targets = drake::possible_targets(plan),
 \item{parallelism}{same as for \code{\link{make}}}
 
 \item{jobs}{same as for \code{\link{make}}}
+
+\item{evaluators}{same as for \code{\link{make}}}
 
 \item{packages}{same as for \code{\link{make}}}
 

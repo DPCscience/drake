@@ -40,7 +40,7 @@ drake_example("slurm") # Writes a new 'slurm' folder with more files.
 # SLURM-powered parallel backend. Requires SLURM.
 library(future.batchtools)
 # future::plan(batchtools_slurm(template = "batchtools.slurm.tmpl")) # nolint
-# make(my_plan, parallelism = "future_lapply") # nolint
+# make(my_plan, parallelism = "future") # nolint
 })
 }
 }

@@ -29,7 +29,7 @@ test_with_dir("Quarantine side effects.", {
 load_basic_example() # Load drake's canonical example.
 config <- drake_config(my_plan) # Internal configuration list.
 # Prepare to use a distributed computing parallel backend
-# such as "Makefile" or "future_lapply".
+# such as "Makefile", "future", or "future_lapply".
 # The following happens during make().
 store_drake_config(config = config)
 prepare_distributed(config = config)

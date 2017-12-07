@@ -26,6 +26,7 @@
 #' @param hook same as for \code{\link{make}}
 #' @param parallelism same as for \code{\link{make}}
 #' @param jobs same as for \code{\link{make}}
+#' @param evaluators same as for \code{\link{make}}
 #' @param packages same as for \code{\link{make}}
 #' @param prework same as for \code{\link{make}}
 #' @param prepend same as for \code{\link{make}}
@@ -82,6 +83,7 @@ drake_config <- function(
   cache = drake::get_cache(verbose = verbose, force = force),
   parallelism = drake::default_parallelism(),
   jobs = 1,
+  evaluators = list(),
   packages = rev(.packages()),
   prework = character(0),
   prepend = character(0),
@@ -139,7 +141,8 @@ drake_config <- function(
   }
   list(
     plan = plan, targets = targets, envir = envir, cache = cache,
-    parallelism = parallelism, jobs = jobs, verbose = verbose, hook = hook,
+    parallelism = parallelism, jobs = jobs, evaluators = evaluators,
+    verbose = verbose, hook = hook,
     prepend = prepend, prework = prework, command = command,
     args = args, recipe_command = recipe_command, graph = graph,
     short_hash_algo = cache$get("short_hash_algo", namespace = "config"),
@@ -177,7 +180,7 @@ add_packages_to_prework <- function(packages, prework) {
 #' # Create a master internal configuration list with prework.
 #' con <- drake_config(my_plan, prework = c("library(knitr)", "x <- 1"))
 #' # Do the prework. Usually done at the beginning of `make()`,
-#' # and for distributed computing backends like "future_lapply",
+#' # and for distributed computing backends like "future",
 #' # right before each target is built.
 #' do_prework(config = con, verbose_packages = TRUE)
 #' identical(x, 1) # Should be TRUE.

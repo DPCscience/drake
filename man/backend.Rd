@@ -28,7 +28,7 @@ library(future)
 future::plan(multicore) # Instead of backend(). Avoid drake::plan().
 # Run the project, build the targets.
 # Future knows that you chose the multicore backend.
-make(my_plan, parallelism = "future_lapply")
+make(my_plan, parallelism = "future")
 })
 }
 }

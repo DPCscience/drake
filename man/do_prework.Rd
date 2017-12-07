@@ -28,7 +28,7 @@ load_basic_example() # Load drake's canonical example.
 # Create a master internal configuration list with prework.
 con <- drake_config(my_plan, prework = c("library(knitr)", "x <- 1"))
 # Do the prework. Usually done at the beginning of `make()`,
-# and for distributed computing backends like "future_lapply",
+# and for distributed computing backends like "future",
 # right before each target is built.
 do_prework(config = con, verbose_packages = TRUE)
 identical(x, 1) # Should be TRUE.

@@ -34,6 +34,24 @@ finish_distributed <- function(config){
   unlink(file, force = TRUE)
 }
 
+#' @title Internal function build_distributed
+#' @description Build a target for a distributed parallel
+#' backend such as "Makefile" or "future".
+#' @details This function is not meant to be called by the user.
+#' It is only exposed so that \code{future::future()} works
+#' as expected for \code{"future"} parallelism.
+#' @export
+#' @keywords internal
+#' @param target name of the tartet to build
+#' @param meta_list list of hash metadata
+#' output from \code{meta_list()}.
+#' @param config Internal configuration list from
+#' \code{\link{drake_config}()}.
+#' @return Nothing.
+#' @examples
+#' # This is not actually a user-side function.
+#' # See the body of mk() to see how build_distributed
+#' # is used in "Makefile" parallelism.
 build_distributed <- function(target, meta_list, cache_path){
   config <- recover_drake_config(cache_path = cache_path)
   do_prework(config = config, verbose_packages = FALSE)

@@ -36,13 +36,16 @@ units of execution.
   Does not work on Windows for \code{jobs > 1}
   because \code{\link{mclapply}()} is based on forking.}
 
-  \item{'future_lapply'}{
+  \item{'future'}{
   opens up a whole trove of parallel backends
   powered by the \code{future} and \code{future.batchtools}
   packages. First, set the parallel backend globally using
-  \code{future::plan()}.
+  \code{future::plan()}. (Or, alternatively, specify
+  different \code{future::future()} evaluators for different targets
+  using the \code{evaluator} column
+  of your workflow plan data frame.
   Then, apply the backend to your plan_drake
-  using \code{make(..., parallelism = "future_lapply", jobs = ...)}.
+  using \code{make(..., parallelism = "future", jobs = ...)}.
   But be warned: the environment for each target needs to be set up
   from scratch, so this backend type is higher overhead than either
   \code{mclapply} or \code{parLapply}.
@@ -50,10 +53,17 @@ units of execution.
   To set the max number of jobs, set the \code{workers}
   argument where it exists. For example, call
   \code{future::plan(multisession(workers = 4))},
-  then call \code{\link{make}(your_plan, parallelism = "future_lapply")}.
+  then call \code{\link{make}(your_plan, parallelism = "future")}.
   You might also try options(mc.cores = jobs),
   or see \code{?future::future::.options}
   for environment variables that set the max number of jobs.
+  }
+
+  \item{'future_lapply'}{
+  Previous version of \code{"future"} parallelism that
+  DOES NOT support different evaluators for different targets
+  using the \code{evaluator} column
+  of the workflow plan data frame.
   }
 
   \item{'Makefile'}{uses multiple R sessions

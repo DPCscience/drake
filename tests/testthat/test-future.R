@@ -1,6 +1,15 @@
 drake_context("future")
 
-test_with_dir("future package functionality", {
+test_with_dir("future backend", {
+  pl <- plan_drake(a = 1, b = 2)
+  pl$evaluator = c("e1", "e2")
+  evaluators = list(e1 = future::sequential, e2 = future::multisession)
+  make(pl, parallelism = "future", session_info = FALSE)
+  expect_equal(readd(a), 1)
+  expect_equal(readd(b), 2)
+})
+
+test_with_dir("future_lapply functionality", {
   future::plan(future::sequential)
   scenario <- get_testing_scenario()
   e <- eval(parse(text = scenario$envir))

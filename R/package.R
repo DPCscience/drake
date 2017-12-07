@@ -38,7 +38,7 @@
 #' @importFrom digest digest
 #' @importFrom evaluate try_capture_stack
 #' @importFrom formatR tidy_source
-#' @importFrom future future_lapply plan
+#' @importFrom future future future_lapply plan values
 #' @importFrom grDevices col2rgb rgb
 #' @importFrom igraph adjacent_vertices delete_vertices degree edge
 #' is_dag make_empty_graph plot.igraph subcomponent V vertex

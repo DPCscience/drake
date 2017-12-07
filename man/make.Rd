@@ -8,8 +8,9 @@ make(plan = plan_drake(), targets = drake::possible_targets(plan),
   envir = parent.frame(), verbose = 1, hook = default_hook,
   cache = drake::get_cache(verbose = verbose, force = force),
   parallelism = drake::default_parallelism(), jobs = 1,
-  packages = rev(.packages()), prework = character(0),
-  prepend = character(0), command = drake::default_Makefile_command(),
+  evaluators = list(), packages = rev(.packages()),
+  prework = character(0), prepend = character(0),
+  command = drake::default_Makefile_command(),
   args = drake::default_Makefile_args(jobs = jobs, verbose = verbose),
   recipe_command = drake::default_recipe_command(), clear_progress = NULL,
   imports_only = FALSE, timeout = Inf, cpu = NULL, elapsed = NULL,
@@ -89,17 +90,21 @@ Windows users should not set \code{jobs > 1} if
 \code{parallelism} is \code{"mclapply"} because
 \code{\link{mclapply}()} is based on forking. Windows users
 who use \code{parallelism == "Makefile"} will need to
-download and install Rtools.
+download and install Rtools.}
 
-For \code{"future_lapply"} parallelism, \code{jobs}
+\item{evaluators}{named list of \code{future::future()} evaluators
+for distributing different targets to different compute resources.
+See the parallelism vignette for examples.
+
+For \code{"future"} and \code{"future_lapply"} parallelism, \code{jobs}
 only applies to the imports.
-To set the max number of jobs for \code{"future_lapply"}
+To set the max number of jobs for \code{"future"} or \code{"future_lapply"}
 parallelism, set the \code{workers}
 argument where it exists: for example, call
 \code{future::plan(multisession(workers = 4))},
-then call \code{\link{make}(your_plan, parallelism = "future_lapply")}.
+then call \code{\link{make}(your_plan, parallelism = "future")}.
 You might also try \code{options(mc.cores = jobs)},
-or see \code{?future::future::.options}
+or see \code{?future::.options}
 for environment variables that set the max number of jobs.
 
 If \code{parallelism} is \code{"Makefile"},  Makefile-level parallelism is
@@ -240,7 +245,7 @@ Should always be set to \code{FALSE} for \code{"parLapply"}
 parallelism and \code{jobs} greater than 1.
 For local multi-session parallelism and lazy loading, try
 \code{library(future); future::plan(multisession)} and then
-\code{make(..., parallelism = "future_lapply", lazy_load = TRUE)}.
+\code{make(..., parallelism = "future", lazy_load = TRUE)}.
 If \code{lazy_load} is \code{FALSE},
 drake prunes the execution environment before every
 parallelizable stages, removing all superfluous targets

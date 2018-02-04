@@ -52,22 +52,29 @@ drake_build_worker <- function(worker_id, config){
   start <- min(worker_id, length(sequence))
   sequence <- topological.sort(config$graph)
   sequence <- sequence[start:length(sequence)]
-  for (target in sequence){
+  for (index in seq_along(sequence)){
+    target <- sequence[index]
+    meta <- drake_meta(target = target, config = config)
+    if (!should_build_target(target = target, meta = meta, config = config)){
+      next
+    }
     if (!lock_successful(target = target, config = config)){
       next
     }
+    protect_these <- c(
+      sequence[index:length(sequence)],
+      config$cache$list(namespace = "locks")
+    )
     prune_envir(
-      protect_these = c(sequence, config$cache$list(namespace = "locks"))
+      protect_these = protect_these,
       config = config
     )
-    sequence <- setdiff(sequence, target)
-    meta <- drake_meta(target = target, config = config)
-    drake_build(
+    value <- drake_build(
       target = target,
       meta = meta
       config = config
     )
-    assign_to_envir_single(targets = targets, values = value, config = config)
+    assign(x = target, value = value, envir = config$envir)
   }
 }
 

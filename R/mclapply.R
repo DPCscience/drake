@@ -1,11 +1,7 @@
 run_mclapply <- function(config){
-  run_parallel(config = config, worker = worker_mclapply)
-}
-
-worker_mclapply <- function(targets, meta_list, config){
   jobs <- safe_jobs(config$jobs)
   tmp <- mclapply(
-    X = targets,
+    X = seq_len(jobs),
     FUN = drake_build_worker,
     meta_list = meta_list,
     config = config,

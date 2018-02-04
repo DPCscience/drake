@@ -1,5 +1,5 @@
 run_parallel_backend <- function(config){
-  unlock_all(config = config)
+  config$cache$clear(namespace = "locks")
   get(
     paste0("run_", config$parallelism),
     envir = getNamespace("drake")

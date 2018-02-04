@@ -11,6 +11,9 @@ is_locked <- function(target, config){
 }
 
 lock_successful <- function(target, config){
+  if (config$jobs < 2){
+    return(TRUE)
+  }
   wait_for_dependencies(
     target = target,
     config = config

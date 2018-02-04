@@ -47,12 +47,28 @@ drake_build <- function(target, config, meta = NULL){
   )
 }
 
-drake_build_worker <- function(target, meta_list, config){
-  drake_build(
-    target = target,
-    meta = meta_list[[target]],
-    config = config
-  )
+drake_build_worker <- function(worker_id, config){
+  config$worker_id <- worker_id
+  start <- min(worker_id, length(sequence))
+  sequence <- topological.sort(config$graph)
+  sequence <- sequence[start:length(sequence)]
+  for (target in sequence){
+    if (!lock_successful(target = target, config = config)){
+      next
+    }
+    prune_envir(
+      protect_these = c(sequence, config$cache$list(namespace = "locks"))
+      config = config
+    )
+    sequence <- setdiff(sequence, target)
+    meta <- drake_meta(target = target, config = config)
+    drake_build(
+      target = target,
+      meta = meta
+      config = config
+    )
+    assign_to_envir_single(targets = targets, values = value, config = config)
+  }
 }
 
 build_in_hook <- function(target, meta, config) {

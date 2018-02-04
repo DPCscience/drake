@@ -3,16 +3,14 @@ run_mclapply <- function(config){
 }
 
 worker_mclapply <- function(targets, meta_list, config){
-  prune_envir(targets = targets, config = config)
   jobs <- safe_jobs(config$jobs)
-  values <- mclapply(
+  tmp <- mclapply(
     X = targets,
     FUN = drake_build_worker,
     meta_list = meta_list,
     config = config,
     mc.cores = jobs
   )
-  assign_to_envir(targets = targets, values = values, config = config)
 }
 
 warn_mclapply_windows <- function(

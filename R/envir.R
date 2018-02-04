@@ -23,18 +23,16 @@ assign_to_envir_single <- function(index, targets, values, config){
   invisible()
 }
 
-prune_envir <- function(targets, config){
-  downstream <- downstream_nodes(
-    from = targets, graph = config$graph, jobs = config$jobs)
+prune_envir <- function(protect_these, config){
   already_loaded <- ls(envir = config$envir, all.names = TRUE) %>%
     intersect(y = config$plan$target)
   load_these <- nonfile_target_dependencies(
-    targets = targets,
+    targets = target,
     config = config
     ) %>%
     setdiff(y = c(targets, already_loaded))
   keep_these <- nonfile_target_dependencies(
-    targets = downstream,
+    targets = protect_these,
     config = config
   )
   discard_these <- setdiff(x = config$plan$target, y = keep_these) %>%
